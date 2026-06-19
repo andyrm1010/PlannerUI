@@ -7,6 +7,7 @@ import type {
   PlannerUser,
   UpdateCalendarInput,
   UpdateEventInput,
+  CreateUserInput,
 } from "./contracts";
 import { request } from "./http";
 
@@ -70,6 +71,11 @@ export function createPlannerApi(baseUrl: string) {
   }
 
   return {
+    createUser: (input: CreateUserInput) =>
+      request<PlannerUser>(apiUrl("/api/Users"), {
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
     getUser: (id: string) =>
       request<PlannerUser>(
         apiUrl(`/api/Users/${encodeURIComponent(id)}`),

@@ -260,7 +260,32 @@ export function ProfilePage({ api, userId }: ProfilePageProps) {
 
   return (
     <section className="route-page route-page--profile">
-      <h1>Profile</h1>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <h1>Profile</h1>
+        {(() => {
+          // Add logout button for clearing session
+          const storageKey = "planner_user_id";
+          return (
+            <button
+              onClick={() => {
+                localStorage.removeItem(storageKey);
+                window.location.href = "/calendar";
+              }}
+              style={{
+                padding: "0.5rem 1rem",
+                background: "#ff4444",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+              }}
+            >
+              Log out
+            </button>
+          );
+        })()}
+      </header>
       <div aria-label="Profile initials" className="profile-avatar">
         {getInitials(user)}
       </div>

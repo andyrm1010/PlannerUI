@@ -1,1 +1,7 @@
 PlannerService/
+node_modules/
+dist/
+tsconfig.app.tsbuildinfo
+Ctempbuildcomplete.txt
+Ctempbuild.log
+Ctempbuildoutput.txt

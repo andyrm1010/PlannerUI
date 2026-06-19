@@ -20,6 +20,10 @@ export type PlannerUser = {
   rowVersion: string | null;
 };
 
+export type CreateUserInput = Pick<PlannerUser, "displayName" | "firstName" | "lastName"> & {
+  email: string;
+};
+
 export type PlannerCalendar = {
   calendarId: string;
   ownerUserId: string;
