@@ -378,8 +378,24 @@ afterEach(() => {
 });
 
 describe("CalendarPage", () => {
-  it("queries the visible range and maps only events with calendars", async () => {
-    const api = createApi();
+  it("shows no-calendars message when there are no calendars", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<CalendarPage api={createApi()} userId="user-1" />);
+
+    expect(screen.getByText(/No calendars available/i)).toBeVisible();
+    expect(screen.queryByTestId("full-calendar")).not.toBeInTheDocument();
+
+    await user.click(
+      within(
+        screen.getByRole("region", { name: "Calendar and agenda" }),
+      ).getByRole("button", { name: "Create event" }),
+    );
+
+    expect(screen.getByRole("dialog", { name: "Create event" })).toBeVisible();
+  });
+
+  it("shows calendar and agenda when there are calendars", async () => {
+    const api = createApi({ calendars: [calendar], events: [event] });
 
     renderWithProviders(<CalendarPage api={api} userId="user-1" />);
 
@@ -401,11 +417,33 @@ describe("CalendarPage", () => {
     );
   });
 
-  it("updates the selected-day heading after a date click", () => {
-    renderWithProviders(
-      <CalendarPage api={createApi()} userId="user-1" />,
-    );
+  it("queries the visible range and maps only events with calendars when provided", async () => {
+    const api = createApi({ calendars: [calendar], events: [event] });
 
+    renderWithProviders(<CalendarPage api={api} userId="user-1" />);
+
+    expect(fullCalendarMock.props?.initialView).toBe("dayGridMonth");
+    await waitFor(() =>
+      expect(api.getEvents).toHaveBeenCalledWith(
+        "user-1",
+        "2026-06-01T00:00:00.000Z",
+        "2026-07-01T00:00:00.000Z",
+      ),
+    );
+    await waitFor(() =>
+      expect(fullCalendarMock.props?.events).toEqual([
+        expect.objectContaining({
+          id: "event-1",
+          title: "Project review",
+        }),
+      ]),
+    );
+  });
+
+  it("updates the selected-day heading after a date click when there are calendars", () => {
+    const api = createApi({ calendars: [calendar], events: [event] });
+
+    renderWithProviders(<CalendarPage api={api} userId="user-1" />);
     fireEvent.click(screen.getByRole("button", { name: "Choose June 12" }));
 
     expect(
@@ -415,9 +453,9 @@ describe("CalendarPage", () => {
     ).toHaveTextContent(/Friday, June 12, 2026/);
   });
 
-  it("moves a padded-range date to the new view current start", () => {
+  it("moves a padded-range date to the new view current start when there are calendars", () => {
     renderWithProviders(
-      <CalendarPage api={createApi()} userId="user-1" />,
+      <CalendarPage api={createApi({ calendars: [calendar], events: [event] })} userId="user-1" />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Choose June 30" }));
@@ -435,7 +473,7 @@ describe("CalendarPage", () => {
   it("preserves a selected date that remains within the new range", async () => {
     const user = userEvent.setup();
     renderWithProviders(
-      <CalendarPage api={createApi()} userId="user-1" />,
+      <CalendarPage api={createApi({ calendars: [calendar], events: [event] })} userId="user-1" />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Choose June 12" }));
@@ -501,7 +539,7 @@ describe("CalendarPage", () => {
   it("tracks mobile Calendar and Agenda tab state without hiding panes", async () => {
     const user = userEvent.setup();
     const view = renderWithProviders(
-      <CalendarPage api={createApi()} userId="user-1" />,
+      <CalendarPage api={createApi({ calendars: [calendar], events: [event] })} userId="user-1" />,
     );
     const calendarTab = screen.getByRole("tab", { name: "Calendar" });
     const agendaTab = screen.getByRole("tab", { name: "Agenda" });
@@ -530,7 +568,7 @@ describe("CalendarPage", () => {
   it("supports roving keyboard focus across the mobile tabs", async () => {
     const user = userEvent.setup();
     renderWithProviders(
-      <CalendarPage api={createApi()} userId="user-1" />,
+      <CalendarPage api={createApi({ calendars: [calendar], events: [event] })} userId="user-1" />,
     );
     const calendarTab = screen.getByRole("tab", { name: "Calendar" });
     const agendaTab = screen.getByRole("tab", { name: "Agenda" });
@@ -566,7 +604,7 @@ describe("CalendarPage", () => {
   it("opens events and create dialogs from the selected-day agenda", async () => {
     const user = userEvent.setup();
     renderWithProviders(
-      <CalendarPage api={createApi()} userId="user-1" />,
+      <CalendarPage api={createApi({ calendars: [calendar], events: [event] })} userId="user-1" />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Choose June 12" }));
 
@@ -612,7 +650,7 @@ describe("CalendarPage", () => {
 
   it("opens the selected range in the create dialog", () => {
     renderWithProviders(
-      <CalendarPage api={createApi()} userId="user-1" />,
+      <CalendarPage api={createApi({ calendars: [calendar], events: [event] })} userId="user-1" />,
     );
 
     fireEvent.click(
@@ -637,7 +675,7 @@ describe("CalendarPage", () => {
 
   it("opens an all-day selection with an inclusive end date", () => {
     renderWithProviders(
-      <CalendarPage api={createApi()} userId="user-1" />,
+      <CalendarPage api={createApi({ calendars: [calendar], events: [event] })} userId="user-1" />,
     );
 
     fireEvent.click(
@@ -997,7 +1035,7 @@ describe("CalendarPage", () => {
   it("date click only selects the date while toolbar create uses a one-hour default", async () => {
     const user = userEvent.setup();
     renderWithProviders(
-      <CalendarPage api={createApi()} userId="user-1" />,
+      <CalendarPage api={createApi({ calendars: [calendar], events: [event] })} userId="user-1" />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Choose June 12" }));
@@ -1021,7 +1059,7 @@ describe("CalendarPage", () => {
     const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
 
     renderWithProviders(
-      <CalendarPage api={createApi()} userId="user-1" />,
+      <CalendarPage api={createApi({ calendars: [calendar], events: [event] })} userId="user-1" />,
     );
 
     await user.click(screen.getByRole("button", { name: "Week" }));

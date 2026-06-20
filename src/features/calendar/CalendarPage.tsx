@@ -349,6 +349,10 @@ export function CalendarPage({ api, userId }: CalendarPageProps) {
         <p role="alert">Unable to load calendar events.</p>
       ) : null}
 
+      {calendarsQuery.isSuccess && calendars.length === 0 ? (
+        <p>No calendars available.</p>
+      ) : null}
+
       <div
         aria-label="Calendar and agenda"
         className="calendar-page__mobile-tabs"
@@ -417,20 +421,22 @@ export function CalendarPage({ api, userId }: CalendarPageProps) {
           </fieldset>
         ) : null}
 
-        <PlannerCalendar
-          key={calendarSurfaceRevision}
-          view={view}
-          events={events}
-          loading={loading}
-          onViewChange={setView}
-          onDateClick={handleDateClick}
-          onSelect={handleSelect}
-          onEventClick={handleEventClick}
-          onEventDrop={handleEventDrop}
-          onEventResize={handleEventResize}
-          onCreate={handleCreate}
-          onDatesSet={handleDatesSet}
-        />
+        {calendars.length > 0 && (
+          <PlannerCalendar
+            key={calendarSurfaceRevision}
+            view={view}
+            events={events}
+            loading={loading}
+            onViewChange={setView}
+            onDateClick={handleDateClick}
+            onSelect={handleSelect}
+            onEventClick={handleEventClick}
+            onEventDrop={handleEventDrop}
+            onEventResize={handleEventResize}
+            onCreate={handleCreate}
+            onDatesSet={handleDatesSet}
+          />
+        )}
       </div>
 
       <div
@@ -441,13 +447,15 @@ export function CalendarPage({ api, userId }: CalendarPageProps) {
         id="agenda-mobile-pane"
         role="tabpanel"
       >
-        <SelectedDayAgenda
-          selectedDate={selectedDate}
-          events={agendaEvents}
-          calendars={calendars}
-          onEventClick={handleAgendaEventClick}
-          onCreateEvent={handleCreate}
-        />
+        {calendars.length > 0 && (
+          <SelectedDayAgenda
+            selectedDate={selectedDate}
+            events={agendaEvents}
+            calendars={calendars}
+            onEventClick={handleAgendaEventClick}
+            onCreateEvent={handleCreate}
+          />
+        )}
       </div>
 
       {editorState ? (
